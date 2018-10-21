@@ -12,4 +12,8 @@ Private key generation :
     After this you will be asked for a passphrase(twice for confirmation). REMEMBER THIS.
 
 Public key generation (from generated private key):
-    $ oopenssl rsa -in private.pem -outform PEM -pubout -out public.pem
+    $ openssl rsa -in private.pem -outform PEM -pubout -out public.pem
+    again you will be asked for passphrase for private key
+
+For tutorial purpose we will be using unencrypted private key. To so use this command
+    $ openssl rsa -in private.pem -out unenc_private.pem
