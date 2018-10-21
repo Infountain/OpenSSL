@@ -12,4 +12,4 @@ Private key generation :
     After this you will be asked for a passphrase(twice for confirmation). REMEMBER THIS.
 
 Public key generation (from generated private key):
-    $ openssl rsautl -encrypt -in $PLAINTEXT -out $PLAINTEXT.encrypt -pubin -inkey keys/pubkey.pem
+    $ oopenssl rsa -in private.pem -outform PEM -pubout -out public.pem
