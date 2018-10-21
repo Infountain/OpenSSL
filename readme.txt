@@ -6,7 +6,7 @@ I will be updating relevent documents which will explain how code is working.
 
 In case of any clarification please contact me on infountain28@gmail.com
 
-Some useful openSSL commands :
+Some useful openSSL commands to generate Private-Public key pair :
 Private key generation :
     $ openssl genrsa -des3 -out private.pem 2048
     After this you will be asked for a passphrase(twice for confirmation). REMEMBER THIS.
