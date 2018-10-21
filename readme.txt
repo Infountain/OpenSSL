@@ -15,5 +15,5 @@ Public key generation (from generated private key):
     $ openssl rsa -in private.pem -outform PEM -pubout -out public.pem
     again you will be asked for passphrase for private key
 
-For tutorial purpose we will be using unencrypted private key. To so use this command
+For tutorial purpose we will be using unencrypted private key. To do so, use this command
     $ openssl rsa -in private.pem -out unenc_private.pem
