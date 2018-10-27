@@ -17,7 +17,7 @@ unsigned char message_digest_value[EVP_MAX_MD_SIZE];
 int padding= RSA_PKCS1_PADDING;
 
 int main(int argc, char *argv[]) {
-	int i;
+	int i,j;
   int mech;
   int mechanism;
 	unsigned char encrypted[4098]={};
@@ -41,47 +41,67 @@ int main(int argc, char *argv[]) {
     exit(1);
   }
 
-	char publicKey[]="-----BEGIN PUBLIC KEY-----\n"\
-					  "MIIBHTANBgkqhkiG9w0BAQEFAAOCAQoAMIIBBQKB/QMJi9kFtE5qz+wuid2wzhoG\n"\
-					  "+Y1avJlpZOf90h6nVqjHo1N33kTTErdl/enfQqAAV5eTvqGdNaGQEC5hXq3WPSXm\n"\
-					  "KZ/jH/r8mjT7tihNCzoPcorGGBiRVKEPsh/bPN2yMMhPrBayURGc577YayBhYnfN\n"\
-					  "i+ZwENR+4ZS7Fo37FkLRwH597U4gTmb3UD+mOBARdCo/Ncn9zXV0Kgbe1pEpeXzS\n"\
-					  "ad0SBsPnUu4eHQGbqVvtXc55cZTnEh7ekGGUYsq3lJMG2HkZaMORspJCt9iakh4d\n"\
-					  "TgxQA/9LYWXqrCGj6Up88bU2PUQWAowPUMmcaFkFEUwxq10hIONQFy5hkjECAwEA\n"\
-					  "AQ==\n"\
-					  "-----END PUBLIC KEY-----\n";
+	char *publicKey = NULL;
 
-	char privateKey[]="-----BEGIN RSA PRIVATE KEY-----\n"\
-					   "MIIEiwIBAAKB/QMJi9kFtE5qz+wuid2wzhoG+Y1avJlpZOf90h6nVqjHo1N33kTT\n"\
-					   "Erdl/enfQqAAV5eTvqGdNaGQEC5hXq3WPSXmKZ/jH/r8mjT7tihNCzoPcorGGBiR\n"\
-					   "VKEPsh/bPN2yMMhPrBayURGc577YayBhYnfNi+ZwENR+4ZS7Fo37FkLRwH597U4g\n"\
-					   "Tmb3UD+mOBARdCo/Ncn9zXV0Kgbe1pEpeXzSad0SBsPnUu4eHQGbqVvtXc55cZTn\n"\
-					   "Eh7ekGGUYsq3lJMG2HkZaMORspJCt9iakh4dTgxQA/9LYWXqrCGj6Up88bU2PUQW\n"\
-					   "AowPUMmcaFkFEUwxq10hIONQFy5hkjECAwEAAQKB/ASyv6D1MfQbRYYSdzB2Tln0\n"\
-					   "cBI4SYUFgxFZj63bLDHonrx+r1PHLSyEmEEtGeJmpRfTcw6MIGnKbz1PYSWGQRBe\n"\
-					   "+ARbURztoZxTwXKVusgVHRmNU7itFjwOC3s7putIuC0jERAKxVx5WgHcw9lSyv6G\n"\
-					   "9eF/eIk7u7ZVsI3v2HodGeHJJy/izkxLdDw2OhqqXy4AAsaSonvasNfuLuA9RTz+\n"\
-					   "aUzY8TiL5u8EQuy3aLlAymaQan1dZN28jIiynnqvqejJAoz76Vuw7bKS3xqXJ8cT\n"\
-					   "8bqACesn5TgoKFW9toVs7GSInXs6HuYsFXhjnNfiOepYoysstBy0T/FxQQJ/Adph\n"\
-					   "Y2YGOiDQ3VJ6hOUWTHTSPv/p/xH4viEAraIJZoKXydfjjtOorN99EJr6YPbtxHdW\n"\
-					   "mmGG62zJCHozDkbheOrhMlC4E4M7tYvv3Hf7HdveapmmPnBQXdu1CeshjbpesnmQ\n"\
-					   "ISgfS1wQd0trFO+3/kXm+adewTHBJ+KLzwV4VQJ/AaOalVksRHUmyt8tTl1HDgZY\n"\
-					   "UnDzXzsUrfVPr3ZR0SqqcN5OhQadZjrTnZCVvHStuzwpCyMGbNoJlalElbqoo7QK\n"\
-					   "6XjDvDd+ScEMzWLvXLV73ge2zEsqTzWcmgZopMkv61FQ40ZausSL26/eLed2qzvj\n"\
-					   "V1eEhMirLuGiOgX+bQJ/AdlPJCrOeb72Rm0du20LU5uXjq4uXYYj5iftklDDClmw\n"\
-					   "cv6JmJ8Mg/e0xBWtTYPydf0QFpbKVClFZ8TtHgiQvOG1cUtibm2Y7KnD1/iKQB95\n"\
-					   "CmllmpTbStqFBnFpGAzkoTRzHvH2T217LFu+arRHo1dBfsSE4UPwUghSsGrnxQJ/\n"\
-					   "ALV3qjVpjqW3xC8m0ehHTYpy8hyFNF9Bv0YDU1fxZGt2UN/jx2Yn9klksZURHPK9\n"\
-					   "G+eVvIpGQhc94+rTjYmvWzUHLxeaVzEMverulXi/GjImwsxFQy8SujTuaDJzWSjl\n"\
-					   "P3joaZJItNNBxR3XEbUzvjRlSqW/2wlJ9zl/xmZHNQJ+el6ZaDZlXHVuaBW1RBxc\n"\
-					   "M2U/8CNgh1L1nw2SPslbiyXCUYjOojje1KS8hQhDq32etUGkvj8jkkHLhMYHl9p0\n"\
-					   "ocqjS7jqVlHtypeRDkzls9Lt7x7OwwsxF5QynDG1wHY02cQcLuqUiEhxRBDyw/HB\n"\
-					   "XCIHcAGc7B9WIopAR5+8\n"\
-					   "-----END RSA PRIVATE KEY-----\n";
+	FILE *fpublicKey = fopen(argv[1], "rb");
+
+	if( fpublicKey != NULL)
+	{
+		if (fseek(fpublicKey, 0L, SEEK_END) == 0)
+		{
+			long pub_buf_size = ftell(fpublicKey);
+			if (pub_buf_size == -1)
+			{
+				exit(0);
+			}
+			publicKey = malloc(sizeof(char) * (pub_buf_size));
+
+			if (fseek(fpublicKey, 0L, SEEK_SET) != 0) {
+				exit(0);
+			}
+			size_t newLen = fread(publicKey, sizeof(char), pub_buf_size, fpublicKey);
+			printf("\npub key is: ");
+		         if (newLen == 0) {
+		             fputs("Error reading file", stderr);
+		         } else {
+		             publicKey[newLen] = '\0'; /* Just to be safe. */
+		         }
+		}
+	}
+
+	char *privateKey = NULL;
+
+	FILE *fprivateKey = fopen(argv[2], "rb");
+
+	if( fprivateKey != NULL)
+	{
+		if (fseek(fprivateKey, 0L, SEEK_END) == 0)
+		{
+			long priv_buf_size = ftell(fprivateKey);
+			if (priv_buf_size == -1)
+			{
+				exit(0);
+			}
+			privateKey = malloc(sizeof(char) * (priv_buf_size));
+
+			if (fseek(fprivateKey, 0L, SEEK_SET) != 0) {
+				exit(0);
+			}
+			size_t newLen = fread(privateKey, sizeof(char), priv_buf_size, fprivateKey);
+			printf("\npriv key is: ");
+			// for (j = 0; j < priv_buf_size; j++)
+			// 	printf("%02x", privateKey[j]);
+		         if (newLen == 0) {
+		             fputs("Error reading file", stderr);
+		         } else {
+		             privateKey[newLen] = '\0'; /* Just to be safe. */
+		         }
+		}
+	}
 
   /* Set digest mechanism */
 	mech_digest = EVP_get_digestbynid(mechanism);
-  printf("************************HASHING****************************\n");
+  printf("\n************************HASHING****************************\n");
 
   /* Digest function call*/
 	Digest(message, mech_digest);
@@ -111,6 +131,11 @@ int main(int argc, char *argv[]) {
 	printf("Decrypted Length =%d\n",decrypted_length);
   printf("************************DECRYPTED**************************\n");
 
+	fclose(fpublicKey);
+	free(publicKey);
+
+	fclose(fprivateKey);
+	free(privateKey);
 	return 0;
 }
 /*
