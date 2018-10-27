@@ -25,6 +25,12 @@ int main(int argc, char *argv[]) {
 	char message[] = "May the force be with you";
 	const EVP_MD *mech_digest;
 
+	if (argc != 3)
+	{
+		printf("Usage : executable <Public_key_file> <private_key_file>\n");
+		exit(0);
+	}
+
   printf("Please enter the digest mechanism:\n");
   printf("1. For SHA256\n");
   printf("2. For SHA512\n");
@@ -64,7 +70,7 @@ int main(int argc, char *argv[]) {
 		         if (newLen == 0) {
 		             fputs("Error reading file", stderr);
 		         } else {
-		             publicKey[newLen] = '\0'; /* Just to be safe. */
+		             publicKey[newLen] = '\0';
 		         }
 		}
 	}
@@ -89,12 +95,10 @@ int main(int argc, char *argv[]) {
 			}
 			size_t newLen = fread(privateKey, sizeof(char), priv_buf_size, fprivateKey);
 			printf("\npriv key is: ");
-			// for (j = 0; j < priv_buf_size; j++)
-			// 	printf("%02x", privateKey[j]);
 		         if (newLen == 0) {
 		             fputs("Error reading file", stderr);
 		         } else {
-		             privateKey[newLen] = '\0'; /* Just to be safe. */
+		             privateKey[newLen] = '\0';
 		         }
 		}
 	}
