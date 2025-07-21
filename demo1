@@ -1,0 +1,310 @@
+#!/usr/bin/env python3
+"""
+RSA 2048 Encryption/Decryption with Digital Certificate Demo for Automotive Cybersecurity Training
+This script demonstrates public-private key cryptography concepts for Session 1
+
+Installation required: pip install cryptography
+
+Author: Automotive Cybersecurity Training
+Date: July 2025
+Location: Bengaluru, Karnataka, India
+"""
+
+import os
+import base64
+from datetime import datetime, timedelta
+from cryptography.hazmat.primitives import hashes, serialization
+from cryptography.hazmat.primitives.asymmetric import rsa, padding
+from cryptography.hazmat.primitives.serialization import load_pem_private_key, load_pem_public_key
+from cryptography import x509
+from cryptography.x509.oid import NameOID
+
+print("="*70)
+print("ðŸš— AUTOMOTIVE CYBERSECURITY TRAINING - SESSION 1")
+print("ðŸ“š RSA 2048 Public-Private Key Cryptography Demonstration")
+print("="*70)
+
+class AutomotiveCryptoDemo:
+    def __init__(self):
+        self.private_key = None
+        self.public_key = None
+        self.certificate = None
+
+    def generate_key_pair(self):
+        """Generate RSA 2048-bit key pair (like creating a secure mailbox and its key)"""
+        print("\nðŸ”‘ STEP 1: Generating RSA 2048-bit Key Pair...")
+        print("Think of this like creating a special mailbox system:")
+        print("- Public Key = The mailbox (anyone can drop letters/messages in)")
+        print("- Private Key = The unique key (only the owner can open and read)")
+
+        # Generate private key
+        self.private_key = rsa.generate_private_key(
+            public_exponent=65537,
+            key_size=2048,
+        )
+
+        # Get public key from private key
+        self.public_key = self.private_key.public_key()
+
+        print("âœ… Key pair generated successfully!")
+        print(f"   Private Key Size: 2048 bits")
+        print(f"   Public Exponent: {self.private_key.public_key().public_numbers().e}")
+
+        return self.private_key, self.public_key
+
+    def create_digital_certificate(self, common_name="Automotive ECU Demo"):
+        """Create a self-signed digital certificate (like an ID card for the ECU)"""
+        print(f"\nðŸ“‹ STEP 2: Creating Digital Certificate...")
+        print("Think of this like creating an official ID card that proves:")
+        print("- Who owns this mailbox (ECU identity)")
+        print("- That the mailbox is authentic (not fake)")
+        print("- When the ID expires (certificate validity)")
+
+        if not self.private_key:
+            raise ValueError("Must generate keys first!")
+
+        # Certificate details
+        subject = issuer = x509.Name([
+            x509.NameAttribute(NameOID.COUNTRY_NAME, "IN"),
+            x509.NameAttribute(NameOID.STATE_OR_PROVINCE_NAME, "Karnataka"),
+            x509.NameAttribute(NameOID.LOCALITY_NAME, "Bengaluru"),
+            x509.NameAttribute(NameOID.ORGANIZATION_NAME, "Automotive Training Center"),
+            x509.NameAttribute(NameOID.COMMON_NAME, common_name),
+        ])
+
+        # Create certificate
+        cert_builder = x509.CertificateBuilder()
+        cert_builder = cert_builder.subject_name(subject)
+        cert_builder = cert_builder.issuer_name(issuer)
+        cert_builder = cert_builder.public_key(self.public_key)
+        cert_builder = cert_builder.serial_number(x509.random_serial_number())
+        cert_builder = cert_builder.not_valid_before(datetime.utcnow())
+        cert_builder = cert_builder.not_valid_after(datetime.utcnow() + timedelta(days=365))
+
+        # Sign certificate with private key
+        self.certificate = cert_builder.sign(self.private_key, hashes.SHA256())
+
+        print("âœ… Digital Certificate created successfully!")
+        print(f"   Subject: {common_name}")
+        print(f"   Location: Bengaluru, Karnataka, India")
+        print(f"   Valid Until: {self.certificate.not_valid_after}")
+
+        return self.certificate
+
+    def demonstrate_encryption(self, message):
+        """Demonstrate encryption using public key (like putting a letter in the mailbox)"""
+        print(f"\nðŸ”’ STEP 3: ENCRYPTION PROCESS")
+        print("Real-life analogy: Putting a secret letter in someone's mailbox")
+        print(f"Original Message: '{message}'")
+        print("\nHow it works:")
+        print("1. Anyone can use the PUBLIC KEY (mailbox) to encrypt")
+        print("2. The message gets scrambled into unreadable cipher text")
+        print("3. Only the PRIVATE KEY (mailbox key) can decrypt it")
+
+        # Convert message to bytes
+        message_bytes = message.encode('utf-8')
+
+        # Encrypt using public key (RSA with OAEP padding for security)
+        encrypted_message = self.public_key.encrypt(
+            message_bytes,
+            padding.OAEP(
+                mgf=padding.MGF1(algorithm=hashes.SHA256()),
+                algorithm=hashes.SHA256(),
+                label=None
+            )
+        )
+
+        # Convert to base64 for display
+        encrypted_base64 = base64.b64encode(encrypted_message).decode('utf-8')
+
+        print("âœ… Encryption completed!")
+        print(f"Encrypted message (Base64): {encrypted_base64[:60]}...")
+        print(f"Encrypted message size: {len(encrypted_message)} bytes")
+
+        return encrypted_message
+
+    def demonstrate_decryption(self, encrypted_message):
+        """Demonstrate decryption using private key (like opening the mailbox)"""
+        print(f"\nðŸ”“ STEP 4: DECRYPTION PROCESS")
+        print("Real-life analogy: Using your private key to open the mailbox")
+        print("\nHow it works:")
+        print("1. Only the owner of the PRIVATE KEY can decrypt")
+        print("2. The cipher text gets converted back to readable message")
+        print("3. This proves the message reached the right recipient")
+
+        # Decrypt using private key
+        decrypted_message = self.private_key.decrypt(
+            encrypted_message,
+            padding.OAEP(
+                mgf=padding.MGF1(algorithm=hashes.SHA256()),
+                algorithm=hashes.SHA256(),
+                label=None
+            )
+        )
+
+        # Convert back to string
+        original_message = decrypted_message.decode('utf-8')
+
+        print("âœ… Decryption completed!")
+        print(f"Decrypted message: '{original_message}'")
+
+        return original_message
+
+    def demonstrate_digital_signature(self, message):
+        """Demonstrate digital signature (like putting a wax seal on a letter)"""
+        print(f"\nâœï¸  STEP 5: DIGITAL SIGNATURE PROCESS")
+        print("Real-life analogy: Putting a unique wax seal on an envelope")
+        print(f"Message to sign: '{message}'")
+        print("\nHow it works:")
+        print("1. Create a hash (fingerprint) of the message")
+        print("2. Encrypt the hash with PRIVATE KEY (your personal seal)")
+        print("3. Anyone can verify using PUBLIC KEY (checking the seal)")
+
+        # Convert message to bytes
+        message_bytes = message.encode('utf-8')
+
+        # Create digital signature
+        signature = self.private_key.sign(
+            message_bytes,
+            padding.PSS(
+                mgf=padding.MGF1(hashes.SHA256()),
+                salt_length=padding.PSS.MAX_LENGTH
+            ),
+            hashes.SHA256()
+        )
+
+        # Convert to base64 for display
+        signature_base64 = base64.b64encode(signature).decode('utf-8')
+
+        print("âœ… Digital signature created!")
+        print(f"Signature (Base64): {signature_base64[:60]}...")
+        print(f"Signature size: {len(signature)} bytes")
+
+        return signature
+
+    def verify_digital_signature(self, message, signature):
+        """Verify digital signature (like checking if the wax seal is authentic)"""
+        print(f"\nðŸ” STEP 6: SIGNATURE VERIFICATION")
+        print("Real-life analogy: Checking if the wax seal is authentic")
+        print("\nHow it works:")
+        print("1. Create hash of the received message")
+        print("2. Use PUBLIC KEY to decrypt the signature")
+        print("3. Compare both hashes - if they match, signature is valid!")
+
+        try:
+            # Convert message to bytes
+            message_bytes = message.encode('utf-8')
+
+            # Verify signature
+            self.public_key.verify(
+                signature,
+                message_bytes,
+                padding.PSS(
+                    mgf=padding.MGF1(hashes.SHA256()),
+                    salt_length=padding.PSS.MAX_LENGTH
+                ),
+                hashes.SHA256()
+            )
+
+            print("âœ… Signature verification SUCCESSFUL!")
+            print("   ðŸ”’ Message is authentic and hasn't been tampered with")
+            print("   ðŸ”’ Message definitely came from the private key owner")
+
+            return True
+
+        except Exception as e:
+            print("âŒ Signature verification FAILED!")
+            print("   âš ï¸  Message may have been tampered with")
+            print("   âš ï¸  Message may not be from the claimed sender")
+            return False
+
+    def demonstrate_tampering_detection(self, signature):
+        """Demonstrate how signature verification catches tampering"""
+        print(f"\nðŸš¨ BONUS: TAMPERING DETECTION DEMO")
+        print("Let's see what happens when someone tampers with our message...")
+
+        tampered_message = "ENGINE_TEMP:99C;BRAKE_PRESSURE:FAIL;FIRMWARE_VERSION:HACKED"
+        print(f"Tampered message: '{tampered_message}'")
+
+        # Try to verify the original signature against tampered message
+        is_valid = self.verify_digital_signature(tampered_message, signature)
+
+        if not is_valid:
+            print("\nðŸ›¡ï¸  SECURITY SUCCESS:")
+            print("   â€¢ Digital signature detected the tampering!")
+            print("   â€¢ This proves why cryptography is essential in vehicles")
+            print("   â€¢ Prevents malicious firmware or fake ECU messages")
+
+        return is_valid
+
+def interactive_demo():
+    """Run an interactive demonstration"""
+    print("\n" + "="*50)
+    print("ðŸŽ® INTERACTIVE DEMONSTRATION")
+    print("="*50)
+
+    demo = AutomotiveCryptoDemo()
+
+    # Generate keys and certificate
+    demo.generate_key_pair()
+    demo.create_digital_certificate("Vehicle_ECU_Training_Module")
+
+    # Get user input for message
+    print("\nðŸ“ Enter a message to encrypt (or press Enter for default):")
+    user_message = input("> ").strip()
+    if not user_message:
+        user_message = "ENGINE_STATUS:OK;BRAKE_TEMP:65C;GPS:12.9716,77.5946"
+
+    # Demonstrate full encryption cycle
+    encrypted = demo.demonstrate_encryption(user_message)
+    decrypted = demo.demonstrate_decryption(encrypted)
+
+    # Demonstrate digital signatures
+    signature = demo.demonstrate_digital_signature(user_message)
+    demo.verify_digital_signature(user_message, signature)
+
+    # Demonstrate tampering detection
+    demo.demonstrate_tampering_detection(signature)
+
+    return demo
+
+# Main execution
+if __name__ == "__main__":
+    # Run the basic demonstration
+    demo = AutomotiveCryptoDemo()
+    demo.generate_key_pair()
+    demo.create_digital_certificate("Vehicle_ECU_Module_001")
+
+    # Demo with automotive data
+    demo_message = "ENGINE_TEMP:75C;BRAKE_PRESSURE:OK;FIRMWARE_VERSION:2.1.4"
+    encrypted_msg = demo.demonstrate_encryption(demo_message)
+    decrypted_msg = demo.demonstrate_decryption(encrypted_msg)
+    signature = demo.demonstrate_digital_signature(demo_message)
+    demo.verify_digital_signature(demo_message, signature)
+    demo.demonstrate_tampering_detection(signature)
+
+    print("\n" + "="*70)
+    print("ðŸŽ¯ KEY LEARNING POINTS FOR AUTOMOTIVE CYBERSECURITY:")
+    print("="*70)
+    print("ðŸš— In vehicles, this same technology protects:")
+    print("   â€¢ Over-the-air (OTA) software updates")
+    print("   â€¢ Vehicle-to-Vehicle (V2V) communications")  
+    print("   â€¢ ECU authentication and secure boot")
+    print("   â€¢ Diagnostic communications")
+    print("   â€¢ Key fob and digital key systems")
+    print("")
+    print("ðŸ”‘ Real-world analogies help understand:")
+    print("   â€¢ Public Key = Mailbox (anyone can use)")
+    print("   â€¢ Private Key = Mailbox key (only owner has)")
+    print("   â€¢ Digital Certificate = Official ID card")
+    print("   â€¢ Digital Signature = Personal wax seal")
+    print("")
+    print("ðŸ›¡ï¸  Why this matters in automotive:")
+    print("   â€¢ Prevents unauthorized ECU firmware")
+    print("   â€¢ Stops fake messages on CAN bus")
+    print("   â€¢ Enables secure remote diagnostics")
+    print("   â€¢ Protects against vehicle hacking")
+    print("="*70)
+
+    # Option for interactive demo
+    print("\nðŸ’¡ Want to try the interactive version? Run: interactive_demo()")
